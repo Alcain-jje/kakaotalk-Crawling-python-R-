@@ -1,0 +1,82 @@
+kkko<-readLines('C:/KakaoTalk.txt')
+
+kkko<-iconv(kkko,'UTF8')
+
+kkko1 <- gsub('[ㄱ-ㅎ]','', kkko) 
+kkko2 <- gsub('(ㅜ|ㅠ)+','',kkko1)
+kkko3 <- gsub('\\(이모티콘\\)','',kkko2)
+kkko4 <- gsub('\\(사진\\)','',kkko3)
+kkko5 <- gsub('\\(동영상\\)','',kkko4)
+kkko6 <- gsub('[~!@#$%^&*()_+=?<>]','',kkko5)
+kkko7 <- gsub('저장한 날짜 : \\d{,2}','',kkko6)
+
+library(dplyr)
+kkko8 <- na.omit(kkko7)
+
+
+#konlp 현재 R에서는 서비스 종료, 따라서 직접nlp를 설정
+
+install.packages("multilinguer")
+library(multilinguer)
+install_jdk()
+install.packages(c('stringr', 'hash', 'tau', 'Sejong', 'RSQLite', 'devtools'), type = "binary")
+install.packages("remotes")
+remotes::install_github('haven-jeon/KoNLP', upgrade = "never", INSTALL_opts=c("--no-multiarch"))
+library(KoNLP) #최종적으로 "KoNLP" 패키지를 불러옵니다
+
+devtools::install_github('haven-jeon/NIADic/NIADic', build_vignettes = TRUE)
+Sys.setenv(JAVA_HOME='C:/Program Files/Java/jre1.8.0_251')  # 설치한 JAVA version에 따라 달라집니다
+buildDictionary(ext_dic = "woorimalsam")  # "woorimalsam" dic을 불러옵니다
+
+useNIADic()  # "NIADic" dic을 불러옵니다
+
+
+
+
+
+
+ko.words <- function(doc){
+  d <- as.character(doc)
+  extractNoun(d)
+}
+
+
+library(tm)
+library(stringr)
+
+ko.words <- function(doc){
+  d <- as.character(doc)
+  pos <- paste(SimplePos09(d))
+  extracted <- str_match(pos, '([가-힣]+)/[NP]')
+  keyword <- extracted[,2]
+  keyword[!is.na(keyword)]
+}
+
+
+cps <- VCorpus(VectorSource(kkko8))
+
+
+tdm <- TermDocumentMatrix(cps,
+                          control = list(tokenize=ko.words,
+                                         removePunctuation = T,
+                                         removeNumbers = T,
+                                         stopwords = c('네','넹','넴','으',
+                                                       '음','움','오','헐','앜')))
+
+
+
+tdm <- as.matrix(tdm)
+View(tdm)
+
+v <- sort(slam::row_sums(tdm), decreasing = T)
+
+data <- data.frame(X=names(v),freq=v)
+
+
+install.packages("wordcloud2")
+
+
+
+library(wordcloud2)
+wordcloud2(data)
+         
