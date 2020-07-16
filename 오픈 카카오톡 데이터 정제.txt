@@ -1,0 +1,20 @@
+kko<-readLines('C:/wow.txt')
+
+kko<-iconv(kko,'UTF8')
+
+
+
+kko1 <- gsub('[ㄱ-ㅎ]','', kko) 
+kko2 <- gsub('(ㅜ|ㅠ)+','',kko1)
+kko3 <- gsub('\\(이모티콘\\)','',kko2)
+kko4 <- gsub('~!@#$%^&*()_+=?<>','',kko3)
+
+library(dplyr)
+kko5 <- na.omit(kko4)
+
+
+
+write.table(kko5,"dogg.txt")
+write.csv(kko5,"new.csv")
+
+write.table(kko5, file="C:/wow.txt", sep=",") 
